@@ -1,0 +1,1 @@
+# Wordpress Photo Contest Plugin
