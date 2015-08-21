@@ -1,0 +1,98 @@
+/* Theme hack */
+.entry-header, .entry-content, .entry-summary, .entry-meta {
+	max-width: 1100px !important;
+}
+
+.col-lg-4,
+.col-md-4,
+.col-sm-6,
+.col-xs-12 {
+	margin-bottom: 20px;
+}
+
+.image-container {
+	/*border: 5px solid white;*/
+	padding: 10px;
+	box-shadow: 0 1px 5px 0 rgba(0, 0, 0, 0.3);
+	transition: all .2s ease-in-out;
+}
+
+.image-container:hover {
+	transform: scale(1.1);
+}
+
+
+.border {
+	border: 1px solid #e1e0e0;
+}
+
+.text-contaner {
+	padding: 5px 10px 5px 10px;
+}
+
+.image-author .author {
+	float: left;
+	font-size: 25px;
+	font-weight: bold;
+}
+
+.image-votes .icon,
+.image-votes .votes,
+.image-votes .vote-loader {
+	float: right;
+	font-size: 25px;
+	font-weight: bold;
+}
+
+.image-votes .votes,
+.image-votes .vote-loader {
+	margin-right: 10px;
+}
+
+.image-container .border a img {
+	display: block;
+	margin-right: auto;
+	margin-left: auto;
+}
+
+.file-label {
+	width: 100%;
+	border: 1px solid black;
+	padding: 6px 12px 6px 12px;
+	display: block;
+    width: 100%;
+    height: 34px;
+    padding: 6px 12px;
+    font-size: 14px;
+    line-height: 1.42857;
+    color: #555;
+    background-color: #FFF;
+    background-image: none;
+    border: 1px solid #CCC;
+    border-radius: 4px;
+    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.075) inset;
+    transition: border-color 0.15s ease-in-out 0s, box-shadow 0.15s ease-in-out 0s;
+}
+
+.author, .votes {
+	color: #444;
+}
+
+.border {
+	background-color: white;
+}
+
+
+
+
+
+@media (max-width: 370px) {
+	.image-author .author,
+	.image-votes .icon,
+	.image-votes .votes {
+		font-size: 20px;
+	}
+}
+
+
+

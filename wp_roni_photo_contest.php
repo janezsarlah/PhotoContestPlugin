@@ -105,7 +105,15 @@ if ( !class_exists('PhotoContest') ) {
 
         if( empty( $_POST['author-email'] ) ) {
           $this->errors[] = 'Pozabili ste vnesti svoj e-mail!';
-        }
+        } 
+
+        /* 
+        * TODO: Email already exists
+        * This check is implemented bot not used
+        */ 
+        /*if( emailExists( filter_var( $_POST['author_email'], FILTER_SANITIZE_EMAIL ) ) ) {
+          $this->errors[] = 'Ta email je že obstaja';
+        }*/
 
         if( $_FILES['file-upload']['error'] == 4 ) {
           $this->errors[] = 'Pozabili ste vstaviti sliko!';
@@ -120,6 +128,7 @@ if ( !class_exists('PhotoContest') ) {
         if( $image_type != 'jpg' && $image_type != 'jpeg' && $image_type != 'png' && $image_type != 'gif' && $image_type != '' ) {
           $this->errors[] = 'Format ' . '.' . $image_type . ' ni podprt. Podprti so samo .jpg, .jpeg, .png in .gif!';
         }  
+
         
         if( !empty( $this->errors ) ) {
           $_SESSION['errors'] = $this->errors;
@@ -173,6 +182,19 @@ if ( !class_exists('PhotoContest') ) {
       return $content;
     }
 
+
+    /*
+    * Verify that the email doesn't already exist
+    */
+    private function emailExists( $email ) {
+      global $wpdb;
+      $query = "select author_email from " . $wpdb->prefix . "roni_images where author_name='" . $email . "';";
+      if( empty($wpdb->query( $query ) ) ) {
+        return true;
+      } else {
+        return false;
+      }
+    }
 
     /*
     * Update tables author
@@ -253,7 +275,10 @@ if ( !class_exists('PhotoContest') ) {
       }
     }
 
-
+    /*
+    * Ajax request
+    * For voting
+    */
     public function wp_roni_photo_contest_footer() {
       ?>
 
@@ -381,6 +406,10 @@ if ( !class_exists('PhotoContest') ) {
     function wp_roni_photo_contest_frontend_scripts_and_styles() {
       wp_enqueue_style( 'wpphotocontest_frontend_bootstrap_css', plugins_url( 'css/bootstrap.min.css', __FILE__ ) );
       wp_enqueue_style( 'wpphotocontest_frontend_font_awesome_css', plugins_url( 'css/font-awesome.min.css', __FILE__ ) );
+      wp_enqueue_style( 'wpphotocontest_frontend_lightbox_css', plugins_url( 'css/lightbox.css', __FILE__ ) );
+      wp_enqueue_style( 'wpphotocontest_frontend_custom_css', plugins_url( 'css/styles.css', __FILE__ ) );
+      wp_enqueue_script( 'wpphotocontest_frontend_custom_script', plugins_url( 'wp_roni_photo_contest/js/scripts.js' ), array('jquery'), '', true);
+      wp_enqueue_script( 'wpphotocontest_frontend_lightbox_script', plugins_url( 'wp_roni_photo_contest/js/lightbox.js' ), array('jquery'), '', true);
     } 
   }
 
