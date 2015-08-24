@@ -32,7 +32,7 @@
 
 .image-author .author {
 	float: left;
-	font-size: 25px;
+	font-size: 20px;
 	font-weight: bold;
 }
 
@@ -40,7 +40,7 @@
 .image-votes .votes,
 .image-votes .vote-loader {
 	float: right;
-	font-size: 25px;
+	font-size: 20px;
 	font-weight: bold;
 }
 
@@ -81,9 +81,6 @@
 .border {
 	background-color: white;
 }
-
-
-
 
 
 @media (max-width: 370px) {

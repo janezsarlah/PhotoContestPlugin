@@ -65,6 +65,7 @@ if ( !class_exists('PhotoContest') ) {
         $query .= "`author_name` varchar(50) not null, ";
         $query .= "`author_email` varchar(50) not null, ";
         $query .= "`number_of_votes` int not null default '0', ";
+        $query .= "`image_status` int not null default '0', ";
         $query .= "`created` datetime not null default '00-00-0000 00:00:00', ";
         $query .= "PRIMARY KEY (`images_id`)";
         $query .= ") ENGINE=MyISAM AUTO_INCREMENT=1 CHARSET=UTF8 COLLATE=utf8_general_ci;";
@@ -343,37 +344,78 @@ if ( !class_exists('PhotoContest') ) {
 
       $ipaddress = $_SERVER['REMOTE_ADDR'];
       $max_same = get_option('wp_roni_photo_contest_same_voted');
+      $traking = get_option('wp_roni_photo_contest_tracking');
 
       $error = false;
       $success = false;
+
+      $traking = 'cookie';
 
 
       if( !empty($_POST) && !empty($_POST['attachment_id'])) {
         $attachment_id = $_POST['attachment_id'];
 
-        $vote_exists = $this->checkIfVoterVoted( $ipaddress, $attachment_id );  
+        switch ( $traking ) {
+          case 'ipaddress':
+            
+            $vote_exists = $this->checkIfVoterVoted( $ipaddress, $attachment_id );  
 
-        if( empty( $vote_exists ) || $vote_exists < $max_same ) {
+            if( empty( $vote_exists ) || $vote_exists < $max_same ) {
 
-          $save_voter = $this->saveVote( $ipaddress, $attachment_id );
+              $save_voter = $this->saveVote( $ipaddress, $attachment_id );
 
-          $update_image_data = $this->updateImage( $attachment_id );
+              $update_image_data = $this->updateImage( $attachment_id );
 
-          if( $save_voter ) {
-            $success = true;
-          } else {
-            $error = 'Vaš glas ni bilo mogoče shraniti! Ponovno naložite srtran in poskusite še enkrat.';
-          }
+              if( $save_voter ) {
+                $success = true;
+              } else {
+                $error = 'Vaš glas ni bilo mogoče shraniti! Ponovno naložite srtran in poskusite še enkrat.';
+              }
 
-          if( $update_image_data ) {
-            $success = true;
-          } else {
-            $error = 'Vaš glas ni bilo mogoče shraniti! Ponovno naložite srtran in poskusite še enkrat.'; 
-          }
+              if( $update_image_data ) {
+                $success = true;
+              } else {
+                $error = 'Vaš glas ni bilo mogoče shraniti! Ponovno naložite srtran in poskusite še enkrat.'; 
+              }
 
-        } else {
-          $error = sprintf( 'Za to sliko ste že glasovali!' );
+            } else {
+              $error = sprintf( 'Za to sliko ste že glasovali!' );
+            }
+
+            break;
+          
+          case 'cookie':
+          default:
+            
+            $vote_exists = ( empty( $_COOKIE['gallery_vote_image_'.$attachment_id] ) ) ? 0 : $_COOKIE['gallery_vote_image_'.$attachment_id];
+
+            if( empty( $vote_exists ) || $vote_exists < $max_same ) {
+
+              $save_voter = $this->saveVote( $ipaddress, $attachment_id );
+
+              $update_image_data = $this->updateImage( $attachment_id );
+
+              if( $save_voter ) {
+                $success = true;
+
+                setcookie( 'gallery_vote_image_' . $attachment_id , ( $vote_exists + 1 ), ( time() + 60 * 60 * 24 * 30 ) );
+
+              } else {
+                $error = 'Vaš glas ni bilo mogoče shraniti! Ponovno naložite srtran in poskusite še enkrat.';
+              }
+
+              if( $update_image_data ) {
+                $success = true;
+              } else {
+                $error = 'Vaš glas ni bilo mogoče shraniti! Ponovno naložite srtran in poskusite še enkrat.'; 
+              }
+            } else {
+              $error = sprintf( 'Za to sliko ste že glasovali!' );
+            }
+
+            break;
         }
+
       } else {
         $error = 'Dobeni podatki niso bili navedeni! Obrnite se na lastnika spletne strani!';
       }
@@ -400,6 +442,42 @@ if ( !class_exists('PhotoContest') ) {
       die();
     }
 
+
+    /*
+    * Where the plugin options are going to be accessible
+    */
+    public function wp_roni_photo_contest_admin_menu() {
+      add_menu_page( 'Tekmovanje', 'Tekmovanje', 'manage_options', 'contest-options', array( $this, 'admin' ) );
+    }
+
+
+    /*
+    * Admin options
+    */
+    public function admin() {
+      if( !current_user_can( 'manage_options' ) )
+        wp_die( 'You do not have permission to access this page!' );
+
+      $approve_id = 0;
+
+      if( $_POST ) {
+        if( isset( $_POST['upload_approved'] ) ) {
+          $approve_id = $_POST['upload_approved']; 
+
+          $update_image_status = $this->updateStatus( $approve_id );
+
+          if( $update_image_data ) {
+            // TODO: Approve to show image on page
+          }
+        }
+      }
+
+
+      $uploads = $this->getImages();
+
+      require( 'inc/menu-page-wrapper.php' );
+    }
+
     /*
     * Load styles and scripts
     */
@@ -421,6 +499,7 @@ if ( !class_exists('PhotoContest') ) {
   add_action( 'wp_enqueue_scripts', array($PhotoContest, 'wp_roni_photo_contest_frontend_scripts_and_styles'), 10, 1 );
 
   add_action('wp_head', array($PhotoContest, 'wp_roni_photo_contest_footer'), 10, 1 );
+  add_action('admin_menu', array($PhotoContest, 'wp_roni_photo_contest_admin_menu'), 10, 1);
   add_action('wp_ajax_imagevote', array($PhotoContest, 'wp_roni_photo_contest_vote'), 10, 1);
   add_action('wp_ajax_nopriv_imagevote', array($PhotoContest, 'wp_roni_photo_contest_vote'), 10, 1);
 
