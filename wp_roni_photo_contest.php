@@ -44,6 +44,12 @@ if ( !class_exists('PhotoContest') ) {
       add_option( 'wp_roni_photo_contest_same_voted', '1' );
       add_option( 'wp_roni_photo_contest_tracking', 'ipaddress' );
       add_option( 'wp_roni_photo_contest_custom_css', '.gallery { border: 5px solid red; }' );
+      add_option( 'wp_roni_photo_contest_subtitle', 'Contest title' );
+      add_option( 'wp_roni_photo_contest_description', 'Contest description.' );
+
+      wp_insert_term('Roni gallery', 'category', array(
+        'slug' => 'roni-gallery'
+      ));
 
       // Database object
       global $wpdb;
@@ -167,11 +173,23 @@ if ( !class_exists('PhotoContest') ) {
           # TODO: Database error handler not implemented yet 
 
           $_SESSION['success'] = 'Slika je bila uspešno naložena!';
+
+          # TOO: Create post for every image upload 
+          $my_post = array(
+            'post_title'    => 'Nov vnos',
+            'post_content'  => 'This is my post.',
+            'post_status'   => 'publish',
+            'post_author'   => 1
+          );
+
+          //wp_insert_post( $my_post );
           
         } 
       }
 
       $images_data = $this->getImages();
+      $contest_subtitle = get_option( 'wp_roni_photo_contest_subtitle' );
+      $contest_description = get_option( 'wp_roni_photo_contest_description' );
 
       // Get the front end ( form, and images grid )
       ob_start();
@@ -197,6 +215,7 @@ if ( !class_exists('PhotoContest') ) {
       }
     }
 
+
     /*
     * Update tables author
     */
@@ -217,6 +236,21 @@ if ( !class_exists('PhotoContest') ) {
     */
     private function getImages() {
       global $wpdb;
+      $query = "select * from `" . $wpdb->prefix . "roni_images` where image_status = 1;";
+      $results = $wpdb->get_results( $query );
+      if( !empty( $results ) ) {
+        return $results;
+      }
+
+      return false;
+    }
+
+
+    /*
+    * Get everything from the table roni_images
+    */
+    private function getImagesForAdmin() {
+      global $wpdb;
       $query = "select * from `" . $wpdb->prefix . "roni_images`;";
       $results = $wpdb->get_results( $query );
       if( !empty( $results ) ) {
@@ -225,6 +259,7 @@ if ( !class_exists('PhotoContest') ) {
 
       return false;
     }
+
 
     /*
     * Saves new voter IP Address
@@ -256,6 +291,7 @@ if ( !class_exists('PhotoContest') ) {
       }
     }
 
+
     /*
     * Checks if a voter with this IP already voted
     */
@@ -264,6 +300,23 @@ if ( !class_exists('PhotoContest') ) {
       $query = "select count(`id`) from " . $wpdb->prefix . "roni_votes where ip_address='" . $ipaddress . "' and attachment_id='" . $attachment_id . "';";
       return $wpdb->get_var( $query );
     }
+
+
+    /*
+    * Update a photo status
+    */
+    private function updateStatus( $attachment_id, $upload_status ) {
+      global $wpdb;
+      $upload_status = ( $upload_status == 1 ? 0 : 1 );     
+      
+      $query = "update " . $wpdb->prefix . "roni_images set image_status='" . $upload_status . "' where attachment_id='" . $attachment_id . "';";
+      if( $wpdb->query( $query ) ) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+
 
     /*
     * For debuging purposes
@@ -275,6 +328,7 @@ if ( !class_exists('PhotoContest') ) {
         echo '</pre>';
       }
     }
+
 
     /*
     * Ajax request
@@ -458,22 +512,34 @@ if ( !class_exists('PhotoContest') ) {
       if( !current_user_can( 'manage_options' ) )
         wp_die( 'You do not have permission to access this page!' );
 
-      $approve_id = 0;
-
+      $attachment_id = 0;
+      $upload_status = 0;
       if( $_POST ) {
-        if( isset( $_POST['upload_approved'] ) ) {
-          $approve_id = $_POST['upload_approved']; 
+        if( isset( $_POST['attachment_id'] ) && isset( $_POST['upload_status'] ) ) {
+          $attachment_id = $_POST['attachment_id']; 
+          $upload_status = $_POST['upload_status']; 
 
-          $update_image_status = $this->updateStatus( $approve_id );
+          $update_image_data = $this->updateStatus( $attachment_id, $upload_status );
 
-          if( $update_image_data ) {
-            // TODO: Approve to show image on page
+          if( !$update_image_data ) {
+            echo "Nastala je napaka. Kontaktirajte razvijalca vmesnika!";
           }
+        }
+
+        if( isset( $_POST['subtitle'] ) ) {
+          $subtitle = $_POST['subtitle'];
+          update_option( 'wp_roni_photo_contest_subtitle', $subtitle );
+        }
+
+        if( isset( $_POST['description'] ) ) {
+          $description = $_POST['description'];
+          update_option( 'wp_roni_photo_contest_description', $description );
         }
       }
 
-
-      $uploads = $this->getImages();
+      $uploads = $this->getImagesForAdmin();
+      $contest_subtitle = get_option( 'wp_roni_photo_contest_subtitle' );
+      $contest_description = get_option( 'wp_roni_photo_contest_description' );
 
       require( 'inc/menu-page-wrapper.php' );
     }

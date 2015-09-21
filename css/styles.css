@@ -82,6 +82,16 @@
 	background-color: white;
 }
 
+#see-more-form {
+	text-align: center;
+}
+
+#see-more-form input {
+	padding: 5px 15px;
+	margin-top: 20px;
+	box-shadow: none;
+}
+
 
 @media (max-width: 370px) {
 	.image-author .author,

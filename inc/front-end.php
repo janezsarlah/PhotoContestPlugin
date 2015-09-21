@@ -30,9 +30,9 @@
 <div class="container-fluid">
   <div class="row">
     <div class="col-md-8 col-sm-6">
-      <h3>Navodila</h3>
+      <h3><?php echo $contest_subtitle; ?></h3>
       <p>
-         Sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+         <?php echo $contest_description; ?>
       </p>
     </div>
     <div class="col-md-4 col-sm-6">
@@ -112,6 +112,12 @@
                   
                   </div>
 
+                </div>
+
+                <div class="row">
+                  <form id="see-more-form" action="" method="post">
+                    <input type="submit" name="" value="Oglejte si več" /> 
+                  </form> 
                 </div>
                   
                </div>
